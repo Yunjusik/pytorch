@@ -21,3 +21,7 @@ CUDA 지원가능한 GPU 목록 : https://www.geforce.com/hardware/technology/cu
 
 6. 주피터노트북에 import 
 conda install ipykernel
+
+
+**주피터노트북에서 패키지 인식을 못하는경우**
+파이참사용 권장.
