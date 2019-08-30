@@ -26,3 +26,10 @@ conda install ipykernel
 **주피터노트북에서 패키지 인식을 못하는경우**
 파이참사용 권장.
 아나콘다 가상환경패키지 파이참에서 적용하기 : https://bradbury.tistory.com/63?category=830131
+
+///torch 임포트 및 cuda
+from __future__ import print_function
+import torch
+torch.cuda.is_available()
+x = torch.rand(5, 3)
+print(x)
