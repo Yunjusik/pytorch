@@ -1,0 +1,23 @@
+파이썬 딥러닝/머신러닝 학습을 위한 개인 포스팅
+
+환경설정
+
+1. 아나콘다 설치 (64bit)
+
+2. 아나콘다 명령어 conda create -n pytorchO python=3.6
+# 파이썬 3.6버전을 사용하는 가상환경 pytorchO 생성
+
+3.conda info --envs
+생성된 가상환경 확인
+
+4.activate pytorchO 
+생성된 가상환경 활성화
+
+5. 활성화 후 파이토치 인스톨
+- (pytorchO)$ conda install pytorch torchvision cudatoolkit=10.0 -c pytorch   
+-이경우, CUDA 10버전이라 가능. GTX1070Ti 그래픽카드 사용
+
+CUDA 지원가능한 GPU 목록 : https://www.geforce.com/hardware/technology/cuda/supported-gpus
+
+6. 주피터노트북에 import 
+conda install ipykernel
