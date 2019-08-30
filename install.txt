@@ -25,3 +25,4 @@ conda install ipykernel
 
 **주피터노트북에서 패키지 인식을 못하는경우**
 파이참사용 권장.
+아나콘다 가상환경패키지 파이참에서 적용하기 : https://bradbury.tistory.com/63?category=830131
