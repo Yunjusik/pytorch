@@ -1,0 +1,32 @@
+Q-Table -> Q-learning, Q-network -> DQN
+
+Q-Table : converge
+Q-network : divergence
+
+Q-net의 경우 성능이 Table보다도 좋지 않은경우가 있음
+주 원인 : 
+1. 샘플들 간의 코릴레이션
+2. 타겟이 non-stationary
+ex1) 샘플들이 매우 유사, 가까운 환경에서는 학습이 제대로 이루어지지 않음. correlation이 강한 샘플들로만 학습하면안됨
+ex2) 타겟이 움직인다? RL에서 loss funtion = min sig(Qpred - Y(target))인데, 같은 네트워크에서 Qpred의 변수들을 바꾸면 Y(target)값도 역시 바뀜
+활을 쏘자마자 과녁이 움직이는 듯한 현상. Non-stationary target
+
+위 문제를 해결하기위한 DQN three solution
+1. Go deep
+ -> layer를 깊고 길게
+2. Caputre & replay (experence replay)
+ -> 상태를 받아오는데 그걸 다 저장하지말고, 버퍼에 저장하고 일정한 시간이 지난후 버퍼에 저장된 랜덤한 샘플로 학습을 시킴.
+ -> 이렇게 랜덤하게 가져와서 학습시키게 되면, 좀더 제너럴한 샘플로 학습이 가능(샘플간 코릴레이션으로 인한 bias 해소 가능)
+ 
+3. separate target network
+ -> 기존 Q네트워크를 카피해서, target Q network를 (Q^-) 생성
+ -> 예측하는 prediction은 기존 네트워크 사용. (Q)
+ -> 기존 네트워크만 업데이트하고, 나중에 target네트워크에 반영. 
+ 
+ 
+Performance optimization for BC enabled iot systems: A DRL approach 논문에서, prediction용 네트워크를 main Q network로 정의.
+Target Y값을 위해 카피한 Q네트워크를, 타겟 Q 네트워크로 명명. 
+
+DQN 대략적 순서
+Q, Q- 생성 -> 랜덤액션 or a_t = arg max a Q(S,a; theta) -> execute a_t 후 리워드 r_t와 다음상태 관찰 -> 해당 상태들을 메모리 D에 저장
+-> 상태 중 일부만 랜덤 샘플링해서 mini batch 돌림 -> 그다음 loss function 통해 target Q network (Q-) update every C step.
