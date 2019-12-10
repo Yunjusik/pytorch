@@ -2,4 +2,6 @@ This is GAN (Generative Adversarial Networks) tutorial from pyptorch to make art
 
 official website link : https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html
 
+GAN theoritical explanation -> https://developers.google.com/machine-learning/gan
+
 
