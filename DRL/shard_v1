@@ -1,0 +1,123 @@
+import gym
+import math
+import random
+import scipy.optimize
+import numpy as np
+import random
+
+class ShardDistribute(gym.Env):
+
+
+    def __init__(self):
+        # Simulation parameters
+        self.nb_nodes = 200
+        self.nb_MalNode = 10
+        self.H_history = []
+        self.e_prob = []
+        self.NodesinShard = []
+
+
+
+    def ShardDist(self, Shard_numb):  # shard dist를 통해 R,C,H를 한번에 관리하자
+        ## 200개 노드를 shard_numb 갯수의 샤드로나눌때, 샤드분배과정 진행 .
+        ## detail -> 만약 샤드갯수가 k개라면, 200을 k+1개의 그룹으로 나누고,
+        ## 해당 샤드번호를 나타내는 array 선언 (Shard)
+        ## Shard[i] = np.random.randint(1,k+2) -> 임의의 i+1번째 노드가 나타내는값은 1~k+1중 특정 값을 나타내도록함
+        ## 값이 k+1인 경우, 해당 노드는 Directory committee (DC) 가 됨
+        ## malicious node가 존재하는 샤드분배환경셋팅
+        ## 초기 malicious node는 10%로 설정. ->> 0 ~ 10% 사이 임의.
+
+        nb_nodes = self.nb_nodes
+        nb_MalNode = self.nb_MalNode
+
+        NodeType = {} ## NodeType이 0이면 Malicious Node, 1이면 Honest Node
+        Shard = {} ## Node들의 샤드 번호 저장
+        ShardCount = {} ## 랜덤분배를 위해 샤드에 들어간 노드 수 카운트
+        MaxShardSize = math.ceil( nb_nodes / (Shard_numb + 1) )
+        H_history = [] ## 노드들의 commit 의견이 major or miner 인지 저장
+        U = 0 ## Entropy
+        
+        ## Node Type 설정        
+        for i in range(nb_MalNode):
+            NodeType[i] = 0
+        for i in range(nb_MalNode,nb_nodes):
+            NodeType[i] = 1
+
+        ## Node들의 샤드 랜덤 배치
+        for i in range(Shard_numb + 1):
+            ShardCount[i] = 0
+        for i in range(nb_nodes):
+            tmp = random.randint(0,Shard_numb)
+            while (ShardCount[tmp] >= MaxShardSize):
+                tmp = random.randint(0, Shard_numb)  
+            Shard[i] = tmp
+            ShardCount[tmp] += 1
+
+        ## 각 샤드에 속하는 노드들의 INDEX 저장
+        NodesInShard = {}
+        for K in range(Shard_numb + 1):
+            NodesInShard[K] = []
+        for i in range(nb_nodes):
+            NodesInShard[Shard[i]].append(i)        
+
+        ## 노드들의 Commit Step에서 결과 저장 (0은 반대, 1은 찬성)
+        ShardConsensus = {}
+        for K in range(Shard_numb + 1):
+            ShardConsensus[K] = []
+        for i in range(nb_nodes):
+            ShardConsensus[Shard[i]].append(NodeType[i])
+
+        # (H[i]는 i번째 노드의 commit 의견이 major인지 miner인지 나타낸 값.
+        # major의견은 1, minor 의견은 0. -> 이값은 signature에 의해 부인방지가 보장된다고 가정
+        # 합의 기록 H는, predefined된 malicious 비율에 따라 샤드분배환경에서의 합의기록
+        for i in range(nb_nodes):
+            if ((ShardConsensus[Shard[i]].count(NodeType[i])) >= 0.5*len(ShardConsensus[Shard[i]])):
+                H_history.append(1)
+            else :
+                H_history.append(0)
+            
+
+        # H를 통해 e__prob(estimated faulty prob) 계산
+        # 구체적인 계산 방법
+        # 먼저 샤드는 1~ k+1개 있고, 각 샤드번호에 해당하는 node index를 호출.
+        # 가령 3번샤드의 해당노드 index가 0,3,20,188 이라고하면
+        # H_his[0]=, H_his[3],H_his[20],H_his[188] 를 호출해서 1과 0의 비율을 확인한 후
+        # binary entropy로 바꿈. 이런식으로 모든 샤드에대해 binary entropy의 평균을 구하고
+        # 이를 본문 U(inconsistency) 수식을 이용하여 e_prob를 구함.
+       
+        for K in range(Shard_numb + 1):
+            if ((ShardConsensus[K].count(0)) >= 0.5*len(ShardConsensus[K])):
+                major_ratio = (ShardConsensus[K].count(0)) / (0.5*len(ShardConsensus[K]))
+                miner_ratio = 1 - major_ratio
+            else:
+                miner_ratio = (ShardConsensus[K].count(0)) / (0.5*len(ShardConsensus[K]))
+                major_ratio = 1 - miner_ratio        
+                
+            if ((miner_ratio == 1) or (major_ratio == 1)):
+                U += 1
+            else:
+                U += -miner_ratio*math.log2(miner_ratio) - major_ratio*math.log2(major_ratio)
+        U = U / (Shard_numb + 1)
+
+
+        def myfunc(x):
+
+            return x*np.log2(x)+(1-x)*np.log2(1-x) + U
+
+        if U >= 0.42:
+            e_prob = scipy.optimize.fsolve(myfunc, x0=0.25)
+        elif 0.2<= U <= 0.42:
+            e_prob = 0.05
+        else:
+            e_prob = 0.02
+  
+
+        # ShardDist함수를 호출할때마다 샤드 shuffling 이 진행되고, 새로운 R, C, H, e_prob 을 리턴
+        H_history = np.array(H_history)
+        H_history = H_history.reshape(200,1)
+
+        self.H_hisory = H_history
+        self.e_prob = e_prob*np.ones((200, 1))
+        self.NodesInShard = NodesInShard
+
+        return self.H_hisory, self.e_prob, self.NodesInShard
