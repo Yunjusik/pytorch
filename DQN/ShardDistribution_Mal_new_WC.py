@@ -165,6 +165,9 @@ class ShardDistribute(gym.Env):
             else:
                 e_prob = 0.025     # k= 1~8
            # print(e_prob)
+           # fslove가 U가 0.42미만에서는 안풀리는 bug가 있어 구간별 
+    
+    
     
             # ShardDist함수를 호출할때마다 샤드 shuffling 이 진행되고, 새로운 R, C, H, e_prob 을 리턴
             H_history = np.array(H_history)
@@ -173,6 +176,8 @@ class ShardDistribute(gym.Env):
             self.e_prob = e_prob*np.ones((200, 200))  # 200x 200 확장
             self.NodesInShard = NodesInShard
             self.Success_ratio = Success_ratio
+            
+            
 
 
         else : # Shard_numb = 1 일 때,
