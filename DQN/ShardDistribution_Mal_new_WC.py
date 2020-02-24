@@ -21,7 +21,7 @@ class ShardDistribute(gym.Env):
     def __init__(self):
         # Simulation parameters
         self.nb_nodes = 200
-        self.nb_MalNode = 30 #round(200*random.randrange(1,21)*0.01)
+        self.nb_MalNode = 60 #round(200*random.randrange(1,21)*0.01)
         self.H_history = []
         self.e_prob = []
         self.NodesinShard = []
@@ -39,7 +39,7 @@ class ShardDistribute(gym.Env):
         U = 0 ## Entropy
 
         FCP = 0
-     #   r_mal = nb_MalNode/nb_nodes # 실제 mal 비율
+
 
 
 
@@ -80,17 +80,21 @@ class ShardDistribute(gym.Env):
                 BlockProposer[i] = NodesInShard[i][tmp]
                                     
 
-
-            DC_num = ShardCount[Shard_numb]
-            if (2/3)*DC_num <= self.nb_MalNode: # 악의적인 노드가 2/3이상된 경우 .. -> 무조건 malicious shard
+            ##worst case인경우 분석
+            DC_num = np.ceil(self.nb_nodes/(Shard_numb+1))
+            if (2/3)*DC_num <= self.nb_MalNode: # 악의적인 노드가 2/3이상된 경우 .. -> 무조건 malicious shard (FN)
                 FCP = 1
-            elif (NodeType[BlockProposer[Shard[i]]] == 1) and ((1/3)*DC_num <= self.nb_MalNode) :
+            elif (random.random() > (self.nb_MalNode /DC_num)) and ((1/3)*DC_num <= self.nb_MalNode) :  # FP
                 ## block producer는 honest이나, malicious node가 1/3이상인 경우
                 FCP = 1
             else:
                 FCP = 0
             print(DC_num,FCP) ## DC 숫자와, FCP 추출.
 
+            if FCP == 1:
+               FCP = (1/(Shard_numb+1))*(1+(Shard_numb/(Shard_numb+1)))
+            else:
+               FCP = 0
 
     
             ## 노드들의 Commit Step에서 결과 저장 (0은 반대, 1은 찬성)
@@ -154,20 +158,12 @@ class ShardDistribute(gym.Env):
     
                 return x*np.log2(x)+(1-x)*np.log2(1-x) + U
     
-            if U >= 0.42:
-                e_prob = scipy.optimize.fsolve(myfunc, x0=0.25)
-            elif 0.4<= U <= 0.42:  # k= 1~3
-                e_prob = 0.08
-            elif 0.3<= U < 0.4:   #k= 1~5
-                e_prob = 0.05
-            elif 0.2 <= U <0.3:   # k= 1~8
-                e_prob = 0.03
+            if U == 0:
+                e_prob = 0
             else:
-                e_prob = 0.025     # k= 1~8
-           # print(e_prob)
-           # fslove가 U가 0.42미만에서는 안풀리는 bug가 있어 구간별 
-    
-    
+                e_prob = scipy.optimize.fsolve(myfunc, x0=0.01)
+
+            print('U & e_prob', U, e_prob)
     
             # ShardDist함수를 호출할때마다 샤드 shuffling 이 진행되고, 새로운 R, C, H, e_prob 을 리턴
             H_history = np.array(H_history)
@@ -176,8 +172,6 @@ class ShardDistribute(gym.Env):
             self.e_prob = e_prob*np.ones((200, 200))  # 200x 200 확장
             self.NodesInShard = NodesInShard
             self.Success_ratio = Success_ratio
-            
-            
 
 
         else : # Shard_numb = 1 일 때,
