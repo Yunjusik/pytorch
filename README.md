@@ -11,6 +11,6 @@ In the future, RL models will be uploaded so that they can be applied to directl
 
 Up to now, Double DQN and Dueling network have been updated.
 
-Requirements
+Requirements,,
 python >= 3.5
 torch version >= 1.0
