@@ -25,14 +25,13 @@ class Dueling_DQN(nn.Module):
         x = self.relu(self.conv2(x))
         x = self.relu(self.conv3(x))
         x = x.view(x.size(0), -1)
-       # x = self.relu(self.fc(x))
-       #  x = self.fc2(x)
 
-        adv = self.relu(self.fc(x))
+
+        adv = self.relu(self.fc(x))    
         val = self.relu(self.fc3(x))
         adv = self.fc2(adv)
         val = self.fc4(val).expand(x.size(0), self.num_actions)
-
+        # adv denotes advantage function of dueling networks
         x = val + adv - adv.mean(1).unsqueeze(1).expand(x.size(0),self.num_actions)
 
         return x
