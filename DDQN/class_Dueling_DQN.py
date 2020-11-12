@@ -1,4 +1,4 @@
-class Dueling_DQN(nn.Module):
+class DQN(nn.Module):
     ### Dueling Network enabled DQN
     def __init__(self, h, w,  num_actions):
         super(DQN, self).__init__()
