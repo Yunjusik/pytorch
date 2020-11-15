@@ -29,7 +29,7 @@ class ReplayMemory(object):
         
         
 
-## PER code mainly changed in sampling part, which is similar with important sampling weight method
+## main contribution of PER is based on important sampling weight method
     def sample(self, batch_size):
         
         if len(self.memory) == self.capacity: ## if memory is full, load full priorities
@@ -43,7 +43,8 @@ class ReplayMemory(object):
         indices = np.random.choice(len(self.memory), batch_size, p=probs) # indice size (batch x 1)
         samples = [self.memory[idx] for idx in indices] # importance samples memory according to indices index, which represents prioritized transition.
         #Then, samples consists of consecutive namedtuple list
-
+        #for example, [transition x(state,action,reward,sate'], transition y(state,action,reward,sate'], transition z(state,action,reward,sate'],...]
+        #the number of components in samples is equivalent to indices number
         return random.sample(self.memory, batch_size)
    
 
