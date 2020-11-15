@@ -8,7 +8,7 @@ class ReplayMemory(object):
         # additive code for PER
         self.prob_alpha = 0.6 ## initial value
         self.priorities = np.zeros((capacity,), dtype=np.float32)
-        
+        #make priority value array with [capacity] size
         
 
     def push(self, *args):
@@ -25,7 +25,7 @@ class ReplayMemory(object):
         self.priorities[self.position] = max_prio ## update priorities array of given transition index to max_prio
         ##
                
-        self.position = (self.position + 1) % self.capacity
+        self.position = (self.position + 1) % self.capacity ##count value update
         
         
 
@@ -40,21 +40,10 @@ class ReplayMemory(object):
         probs = prios ** self.prob_alpha ## recall that prios is priorities array. each square proccess is done for all memory component
         probs /= probs.sum() ## probability of sampling of transition based on PER paper.
         
-        indices = np.random.choice(len(self.memory), batch_size, p=probs)
-        samples = [self.memory[idx] for idx in indices]
-        
-        
-        
-        
-        
-        
-        
-        
-                
-        
-        
-        
-        
+        indices = np.random.choice(len(self.memory), batch_size, p=probs) # indice size (batch x 1)
+        samples = [self.memory[idx] for idx in indices] # importance samples memory according to indices index, which represents prioritized transition.
+        #Then, samples consists of consecutive namedtuple list
+
         return random.sample(self.memory, batch_size)
     
     
