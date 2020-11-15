@@ -45,14 +45,19 @@ class ReplayMemory(object):
         #Then, samples consists of consecutive namedtuple list
 
         return random.sample(self.memory, batch_size)
-    
-    
-    
-    
-    
-    
-    
-    
+   
+
+
+####  priority update. required data shape
+#### batch_indices.shape -> 1D(batch size array)
+#### batch_priorities -> 2D (batch size x 1) array.
+
+    def update_priorities(self, batch_indices, batch_priorities):
+        for idx, prio in zip(batch_indices, batch_priorities):
+            self.priorities[idx] = prio  
+            
+####   update_priorites function interact with optimize_model
+   
 
     def __len__(self):
         return len(self.memory)
