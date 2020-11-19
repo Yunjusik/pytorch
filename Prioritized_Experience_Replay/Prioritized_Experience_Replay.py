@@ -29,23 +29,22 @@ class ReplayMemory(object):
         
         
 
-## main contribution of PER is based on important sampling weight method
-    def sample(self, batch_size):
-        
-        if len(self.memory) == self.capacity: ## if memory is full, load full priorities
-            prios = self.priorities 
+    def sample(self, batch_size, beta = 0.4):
+
+        if len(self.memory) == self.capacity:  ## if memory is full, load full priorities
+            prios = self.priorities
         else:
-            prios = self.priorities[:self.position] 
-            
-        probs = prios ** self.prob_alpha ## recall that prios is priorities array. each square proccess is done for all memory component
-        probs /= probs.sum() ## probability of sampling of transition based on PER paper.
-        
-        indices = np.random.choice(len(self.memory), batch_size, p=probs) # indice size (batch x 1)
-        samples = [self.memory[idx] for idx in indices] # importance samples memory according to indices index, which represents prioritized transition.
-        #Then, samples consists of consecutive namedtuple list
-        #for example, [transition x(state,action,reward,sate'], transition y(state,action,reward,sate'], transition z(state,action,reward,sate'],...]
-        #the number of components in samples is equivalent to indices number
-        return random.sample(self.memory, batch_size)
+            prios = self.priorities[:self.position]
+        probs = prios ** self.prob_alpha  ## recall that prios is priorities array. each square proccess is done for all memory component
+        probs /= probs.sum()  ## probability of sampling of transition based on PER paper.
+        indices = np.random.choice(len(self.memory), batch_size, p=probs)
+        samples = [self.memory[idx] for idx in indices]
+        total = len(self.memory)
+        weights = (total * probs[indices]) ** (-beta)
+        weights /= weights.max()
+        weights = np.array(weights, dtype=np.float32)  ## [batch] 1d array
+
+        return samples, indices, weights
    
 
 
