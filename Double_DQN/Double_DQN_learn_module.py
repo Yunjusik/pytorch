@@ -33,19 +33,19 @@ def optimize_model():
 
 ###################### Standard DQN end ############################
 
-################Dueling DQN V1###############
+################Double DQN V1###############
 #    a_prime = policy_net(non_final_next_states).max(1)[1].detach() ## choose the action with maximum Q-value from policy net
 #    target_dnn_output = target_net(non_final_next_states).detach() ## output of target net when inserting next_state batch
 #    final_value = target_dnn_output.gather(1, a_prime.unsqueeze(1)) ## output of target net when inserting action with a_prime
 #    next_state_values[non_final_mask] = final_value.squeeze() ## size reshape
-##############End of Dueling DQN V1##########'''
+##############End of Double DQN V1##########'''
 
 
-################ Dueling DQN V2 - one line ##################
+################ Double DQN V2 - one line ##################
 
     next_state_values[non_final_mask] = target_net(non_final_next_states).gather(1, policy_net(non_final_next_states).max(1)[1].unsqueeze(1).detach()).squeeze(1).detach()
 
-############### Dueling DQN V2 ##################
+############### Double DQN V2 ##################
 
     expected_state_action_values = (next_state_values * GAMMA) + reward_batch
     # Compute Huber loss
